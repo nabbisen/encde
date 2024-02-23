@@ -2,6 +2,9 @@
 
 Encode and Decode
 
+- No internet, no telemetry, perfect privacy.
+- Easy startup, easy usage, fast performance.
+
 ## Getting started
 
 Run:
