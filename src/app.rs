@@ -12,46 +12,82 @@ extern "C" {
 
 #[derive(Serialize, Deserialize)]
 struct GreetArgs<'a> {
-    name: &'a str,
+    str: &'a str,
 }
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let greet_input_ref = use_node_ref();
+    let encode_input_ref = use_node_ref();
+    let decode_input_ref = use_node_ref();
 
-    let name = use_state(|| String::new());
+    let encode_target = use_state(|| String::new());
+    let decode_target = use_state(|| String::new());
 
     let greet_msg = use_state(|| String::new());
     {
         let greet_msg = greet_msg.clone();
-        let name = name.clone();
-        let name2 = name.clone();
+        let encode_target = encode_target.clone();
+        let encode_target2 = encode_target.clone();
         use_effect_with_deps(
             move |_| {
                 spawn_local(async move {
-                    if name.is_empty() {
+                    if encode_target.is_empty() {
                         return;
                     }
 
-                    let args = to_value(&GreetArgs { name: &*name }).unwrap();
+                    let args = to_value(&GreetArgs { str: &*encode_target }).unwrap();
                     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-                    let new_msg = invoke("greet", args).await.as_string().unwrap();
+                    let new_msg = invoke("encode_base64", args).await.as_string().unwrap();
                     greet_msg.set(new_msg);
                 });
 
                 || {}
             },
-            name2,
+            encode_target2,
         );
     }
+    {
+        let greet_msg = greet_msg.clone();
+        let decode_target = decode_target.clone();
+        let decode_target2 = decode_target.clone();
+        use_effect_with_deps(
+            move |_| {
+                spawn_local(async move {
+                    if decode_target.is_empty() {
+                        return;
+                    }
 
-    let greet = {
-        let name = name.clone();
-        let greet_input_ref = greet_input_ref.clone();
-        Callback::from(move |e: SubmitEvent| {
+                    let args = to_value(&GreetArgs { str: &*decode_target }).unwrap();
+                    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+                    let new_msg = invoke("decode_base64", args).await.as_string().unwrap();
+                    greet_msg.set(new_msg);
+                });
+
+                || {}
+            },
+            decode_target2,
+        );
+    }
+    let encode = {
+        let encode_target = encode_target.clone();
+        let encode_input_ref = encode_input_ref.clone();
+        Callback::from(move |e: MouseEvent| {
             e.prevent_default();
-            name.set(
-                greet_input_ref
+            encode_target.set(
+                encode_input_ref
+                    .cast::<web_sys::HtmlInputElement>()
+                    .unwrap()
+                    .value(),
+            );
+        })
+    };
+    let decode = {
+        let decode_target = decode_target.clone();
+        let decode_input_ref = decode_input_ref.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            decode_target.set(
+                decode_input_ref
                     .cast::<web_sys::HtmlInputElement>()
                     .unwrap()
                     .value(),
@@ -64,10 +100,14 @@ pub fn app() -> Html {
             <h1>{"Encde"}</h1>
 
             <main class="container">
-                <form class="row" onsubmit={greet}>
-                    <input id="greet-input" ref={greet_input_ref} placeholder="Enter a name..." />
-                    <button type="submit">{"Greet"}</button>
-                </form>
+                <div class="row">
+                    <input id="encode-input" ref={encode_input_ref} placeholder="Enter decode target..." />
+                    <button type="button" onclick={encode}>{"Encode"}</button>
+                </div>
+                <div class="row">
+                    <input id="decode-input" ref={decode_input_ref} placeholder="Enter decode target..." />
+                    <button type="button" onclick={decode}>{"Decode"}</button>
+                </div>
                 
                 <p><b>{ &*greet_msg }</b></p>
             </main>
