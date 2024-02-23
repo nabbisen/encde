@@ -58,7 +58,8 @@ pub fn app() -> Html {
         };
         let target_str = target_str.clone();
         let target_str2 = target_str.clone();
-        use_effect_with_deps(
+        use_effect_with(
+            target_str2,
             move |_| {
                 spawn_local(async move {
                     if target_str.is_empty() {
@@ -81,7 +82,6 @@ pub fn app() -> Html {
                     }
                 });
             },
-            target_str2,
         );
     }
 
@@ -89,7 +89,9 @@ pub fn app() -> Html {
 }
 
 fn on_mounted() {
-    use_effect_with_deps(
+    use_effect_with(
+        // on mounted only
+        Vec::<bool>::new(),
         |_| {
             let input_element = web_sys::window()
                 .unwrap()
@@ -102,8 +104,6 @@ fn on_mounted() {
                 .unwrap();
             input_element.click();
         },
-        // on mounted only
-        Vec::<bool>::new(),
     );
 }
 
