@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use yew::prelude::*;
 use web_sys::HtmlInputElement;
+use yew::prelude::*;
 
 #[wasm_bindgen]
 extern "C" {
@@ -26,32 +26,28 @@ enum EncdeType {
     // Jwt,
 }
 
+impl EncdeType {
+    fn display(&self) -> String {
+        "todo".to_owned()
+    }
+    fn from_str(_todo: &str) -> EncdeType {
+        EncdeType::Base64
+    }
+}
+
 #[function_component(App)]
 pub fn app() -> Html {
-    // on mounted
-    use_effect_with_deps(
-        |_| {
-            let input_element = web_sys::window()
-                .unwrap()
-                .document()
-                .unwrap()
-                .query_selector(".select input[type=\"radio\"]")
-                .unwrap()
-                .unwrap()
-                .dyn_into::<HtmlInputElement>()
-                .unwrap();
-            input_element.click();
-        },
-        // on mounted only
-        Vec::<bool>::new(),
-    );
+    on_mounted();
 
     let encode_ref = use_node_ref();
     let decode_ref = use_node_ref();
 
     let target_str = use_state(|| String::new());
     let target_direction = use_state(|| false);
-    let target_kind = use_state(|| String::new());
+    let target_kind = use_state(|| EncdeType::Base64);
+
+    let encode = { onblur(&target_str, &encode_ref, &target_direction.clone(), false) };
+    let decode = { onblur(&target_str, &decode_ref, &target_direction.clone(), true) };
 
     {
         let is_decode = *target_direction;
@@ -88,12 +84,39 @@ pub fn app() -> Html {
             target_str2,
         );
     }
-    let encode = { onblur(&target_str, &encode_ref, &target_direction.clone(), false) };
-    let decode = { onblur(&target_str, &decode_ref, &target_direction.clone(), true) };
 
+    view(encode_ref, decode_ref, target_kind, encode, decode)
+}
+
+fn on_mounted() {
+    use_effect_with_deps(
+        |_| {
+            let input_element = web_sys::window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .query_selector(".select input[type=\"radio\"]")
+                .unwrap()
+                .unwrap()
+                .dyn_into::<HtmlInputElement>()
+                .unwrap();
+            input_element.click();
+        },
+        // on mounted only
+        Vec::<bool>::new(),
+    );
+}
+
+fn view(
+    encode_ref: NodeRef,
+    decode_ref: NodeRef,
+    target_kind: UseStateHandle<EncdeType>,
+    encode: Callback<FocusEvent>,
+    decode: Callback<FocusEvent>,
+) -> Html {
     html! {
         <>
-            <h1><span style={"margin-right: 0.6rem;"}>{ target_kind.as_str() }</span>{"Encde"}</h1>
+            <h1><span style={"margin-right: 0.6rem;"}>{ target_kind.display() }</span>{"Encde"}</h1>
 
             <main class="container">
                 { select(&target_kind) }
@@ -116,27 +139,7 @@ pub fn app() -> Html {
     }
 }
 
-fn onblur(
-    target_str: &UseStateHandle<String>,
-    input_ref: &NodeRef,
-    target_direction: &UseStateHandle<bool>,
-    kind: bool,
-) -> Callback<FocusEvent> {
-    let target_str = target_str.clone();
-    let input_ref = input_ref.clone();
-    let target_direction = target_direction.clone();
-    Callback::from(move |_: FocusEvent| {
-        target_str.set(
-            input_ref
-                .cast::<HtmlInputElement>()
-                .unwrap()
-                .value(),
-        );
-        target_direction.set(kind);
-    })
-}
-
-fn select(target_kind: &UseStateHandle<String>) -> Html {
+fn select(target_kind: &UseStateHandle<EncdeType>) -> Html {
     html! {
         <div class="select" style="width: 8em; margin-left: auto; margin-right: auto;">
             <ul>
@@ -162,7 +165,7 @@ fn select(target_kind: &UseStateHandle<String>) -> Html {
                                             let target_kind_id = e.target().expect("todo")
                                                 .dyn_into::<HtmlInputElement>().expect("todo")
                                                 .dataset().get("encde-kind").expect("todo");
-                                            target_kind.set(target_kind_id);
+                                            target_kind.set(EncdeType::from_str(target_kind_id.as_str()));
                                         })
 
                                     }/>
@@ -176,4 +179,19 @@ fn select(target_kind: &UseStateHandle<String>) -> Html {
             </ul>
         </div>
     }
+}
+
+fn onblur(
+    target_str: &UseStateHandle<String>,
+    input_ref: &NodeRef,
+    target_direction: &UseStateHandle<bool>,
+    kind: bool,
+) -> Callback<FocusEvent> {
+    let target_str = target_str.clone();
+    let input_ref = input_ref.clone();
+    let target_direction = target_direction.clone();
+    Callback::from(move |_: FocusEvent| {
+        target_str.set(input_ref.cast::<HtmlInputElement>().unwrap().value());
+        target_direction.set(kind);
+    })
 }
