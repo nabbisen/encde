@@ -148,7 +148,7 @@ fn select(target_kind: &UseStateHandle<String>) -> Html {
                     {
                         let type_name =match &t {
                             EncdeType::Base64 => "Base64",
-                            EncdeType::Md5 => "Md5",
+                            EncdeType::Md5 => "Md5 (todo)",
                         };
                         html! {
                             <li>
