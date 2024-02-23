@@ -1,8 +1,8 @@
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: normal;
 
   color: #0f0f0f;
   background-color: #f6f6f6;
@@ -16,23 +16,17 @@
 
 .container {
   margin: 0;
-  padding-top: 10vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   text-align: center;
 }
 
-.row {
-  display: flex;
-  justify-content: center;
-}
-
 h1 {
   text-align: center;
 }
 
-input,
+textarea,
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -57,6 +51,27 @@ button:active {
   background-color: #e8e8e8;
 }
 
+.select li {
+  display: inline;
+}
+
+.encde {
+  margin-bottom: 0.9rem;
+  width: 80vw;
+  margin-left: auto;
+  margin-right: auto;
+}
+.encde .header,
+.encde textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+.encde .header {
+  padding: 0.2rem 0 0.2rem 0.4rem;
+  display: flex;
+  justify-content: space-between;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color: #f6f6f6;
@@ -67,7 +82,7 @@ button:active {
     font-size: 0.9rem;
   }
 
-  input,
+  textarea,
   button {
     color: #ffffff;
     background-color: #0f0f0f98;
