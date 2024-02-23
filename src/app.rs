@@ -17,83 +17,49 @@ struct GreetArgs<'a> {
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let encode_input_ref = use_node_ref();
-    let decode_input_ref = use_node_ref();
+    let encode_ref = use_node_ref();
+    let decode_ref = use_node_ref();
 
-    let encode_target = use_state(|| String::new());
-    let decode_target = use_state(|| String::new());
+    let target_str = use_state(|| String::new());
+    let target_kind = use_state(|| false);
 
-    let greet_msg = use_state(|| String::new());
     {
-        let greet_msg = greet_msg.clone();
-        let encode_target = encode_target.clone();
-        let encode_target2 = encode_target.clone();
+        let is_decode = *target_kind;
+        let processed = if is_decode {
+            encode_ref.clone()
+        } else {
+            decode_ref.clone()
+        };
+        let target_str = target_str.clone();
+        let target_str2 = target_str.clone();
         use_effect_with_deps(
             move |_| {
                 spawn_local(async move {
-                    if encode_target.is_empty() {
+                    if target_str.is_empty() {
                         return;
                     }
 
-                    let args = to_value(&GreetArgs { str: &*encode_target }).unwrap();
+                    let args = to_value(&GreetArgs { str: &*target_str }).unwrap();
                     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-                    let new_msg = invoke("encode_base64", args).await.as_string().unwrap();
-                    greet_msg.set(new_msg);
-                });
-
-                || {}
-            },
-            encode_target2,
-        );
-    }
-    {
-        let greet_msg = greet_msg.clone();
-        let decode_target = decode_target.clone();
-        let decode_target2 = decode_target.clone();
-        use_effect_with_deps(
-            move |_| {
-                spawn_local(async move {
-                    if decode_target.is_empty() {
-                        return;
+                    let cmd = if is_decode {
+                        "decode_base64"
+                    } else {
+                        "encode_base64"
+                    };
+                    let ret = invoke(cmd, args).await;
+                    if !ret.is_null() {
+                        processed
+                            .cast::<web_sys::HtmlInputElement>()
+                            .unwrap()
+                            .set_value(&ret.as_string().expect("todo"));
                     }
-
-                    let args = to_value(&GreetArgs { str: &*decode_target }).unwrap();
-                    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-                    let new_msg = invoke("decode_base64", args).await.as_string().unwrap();
-                    greet_msg.set(new_msg);
                 });
-
-                || {}
             },
-            decode_target2,
+            target_str2,
         );
     }
-    let encode = {
-        let encode_target = encode_target.clone();
-        let encode_input_ref = encode_input_ref.clone();
-        Callback::from(move |e: MouseEvent| {
-            e.prevent_default();
-            encode_target.set(
-                encode_input_ref
-                    .cast::<web_sys::HtmlInputElement>()
-                    .unwrap()
-                    .value(),
-            );
-        })
-    };
-    let decode = {
-        let decode_target = decode_target.clone();
-        let decode_input_ref = decode_input_ref.clone();
-        Callback::from(move |e: MouseEvent| {
-            e.prevent_default();
-            decode_target.set(
-                decode_input_ref
-                    .cast::<web_sys::HtmlInputElement>()
-                    .unwrap()
-                    .value(),
-            );
-        })
-    };
+    let encode = { onblur(&target_str, &encode_ref, &target_kind.clone(), false) };
+    let decode = { onblur(&target_str, &decode_ref, &target_kind.clone(), true) };
 
     html! {
         <>
@@ -101,16 +67,40 @@ pub fn app() -> Html {
 
             <main class="container">
                 <div class="row">
-                    <input id="encode-input" ref={encode_input_ref} placeholder="Enter decode target..." />
-                    <button type="button" onclick={encode}>{"Encode"}</button>
+                    <h2>{"Encode target"}</h2>
+                    <input id="encode-input" ref={encode_ref} onblur={encode} placeholder="Enter decode target..." />
+                    <button type="button">{"Copy (todo)"}</button>
+                </div>
+                <div class={"select"} style={"width: 8em; margin-left: auto; margin-right: auto;"}>
+                    <ul><li>{"kind (todo)"}</li></ul>
                 </div>
                 <div class="row">
-                    <input id="decode-input" ref={decode_input_ref} placeholder="Enter decode target..." />
-                    <button type="button" onclick={decode}>{"Decode"}</button>
+                    <h2>{"Decode target"}</h2>
+                    <input id="decode-input" ref={decode_ref} onblur={decode} placeholder="Enter decode target..." />
+                    <button type="button">{"Copy (todo)"}</button>
                 </div>
-                
-                <p><b>{ &*greet_msg }</b></p>
             </main>
         </>
     }
+}
+
+fn onblur(
+    target_str: &UseStateHandle<String>,
+    input_ref: &NodeRef,
+    target_kind: &UseStateHandle<bool>,
+    kind: bool,
+) -> Callback<FocusEvent> {
+    let target_str = target_str.clone();
+    let input_ref = input_ref.clone();
+    let target_kind = target_kind.clone();
+    Callback::from(move |e: FocusEvent| {
+        e.prevent_default();
+        target_str.set(
+            input_ref
+                .cast::<web_sys::HtmlInputElement>()
+                .unwrap()
+                .value(),
+        );
+        target_kind.set(kind);
+    })
 }
