@@ -1,8 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use base64::{prelude::BASE64_STANDARD, Engine};
 // use tauri::Manager; // todo: for devtools
+use base64::{prelude::BASE64_STANDARD, Engine};
+// use hashes::md5::hash;
 
 #[tauri::command]
 fn encode_base64(str: &str) -> String {
@@ -20,6 +21,11 @@ fn decode_base64(str: &str) -> Option<String> {
     }
 }
 
+// #[tauri::command]
+// fn hash_md5(str: &str) -> String {
+//     let digest = hash(str.as_bytes());
+// }
+
 fn main() {
     tauri::Builder::default()
         // todo: for devtools
@@ -32,7 +38,11 @@ fn main() {
         //     }
         //     Ok(())
         // })
-        .invoke_handler(tauri::generate_handler![encode_base64, decode_base64])
+        .invoke_handler(tauri::generate_handler![
+            encode_base64,
+            decode_base64,
+            // hash_md5,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
