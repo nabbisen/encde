@@ -16,7 +16,7 @@ if [ "$host" != "$target" ]
 then
   export "CARGO_TARGET_$(echo $target | tr a-z- A-Z_)_LINKER"=rust-lld
 fi
-export CARGO_PROFILE_RELEASE_LTO=true
+
 cargo tauri build --target $target
 
 cd target/$target/release
