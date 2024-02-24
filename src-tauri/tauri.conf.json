@@ -12,11 +12,7 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false,
-      "shell": {
-        "all": false,
-        "open": true
-      }
+      "all": false
     },
     "bundle": {
       "active": true,
@@ -34,8 +30,8 @@
         "fullscreen": false,
         "resizable": true,
         "title": "encde",
-        "width": 800,
-        "height": 600
+        "width": 1024,
+        "height": 768
       }
     ]
   }
