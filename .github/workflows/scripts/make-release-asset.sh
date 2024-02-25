@@ -17,7 +17,7 @@ then
   export "CARGO_TARGET_$(echo $target | tr a-z- A-Z_)_LINKER"=rust-lld
 fi
 
-env RUSTFLAGS="--cfg=web_sys_unstable_apis" cargo tauri build --target $target
+env cargo tauri build --target $target
 
 cd target/$target/release
 

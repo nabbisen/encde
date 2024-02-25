@@ -57,6 +57,8 @@ jobs:
         cargo install trunk # only when rust used in frontend
         rustup target add wasm32-unknown-unknown
     - name: Build asset
+      env:
+        RUSTFLAGS: --cfg=web_sys_unstable_apis
       run: bash .github/workflows/scripts/make-release-asset.sh ${{ matrix.os }} ${{ matrix.target }} ${{ matrix.tag }}
     - name: Update release with new asset
       env:
