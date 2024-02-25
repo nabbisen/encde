@@ -18,7 +18,7 @@ jobs:
       matrix:
         target:
           # - aarch64-unknown-linux-musl
-          # - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-gnu
           # - x86_64-unknown-linux-musl
           - x86_64-apple-darwin
           - x86_64-pc-windows-msvc
@@ -26,9 +26,9 @@ jobs:
           # - target: aarch64-unknown-linux-musl
           #   os: ubuntu-22.04
           #   tag: linux-aarch64-musl
-          # - target: x86_64-unknown-linux-gnu
-          #   os: ubuntu-22.04
-          #   tag: linux-x86_64-gnu
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+            tag: linux-x86_64-gnu
           # - target: x86_64-unknown-linux-musl
           #   os: ubuntu-22.04
           #   tag: linux-x86_64-musl
@@ -42,11 +42,25 @@ jobs:
     - uses: actions/checkout@master
     - name: Install Rust
       run: bash .github/workflows/scripts/install-rust.sh stable ${{ matrix.target }}
+    # Linux only starts here
     - name: Install Tauri dependencies (Linux only)
-      if: runner.os == 'ubuntu-22.04'
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y libwebkit2gtk-4.0-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+    # - name: Install Tauri dependencies (Linux musl only)
+    #   if: matrix.target == 'aarch64-unknown-linux-musl' || matrix.target == 'x86_64-unknown-linux-musl'
+    #   run: |
+    #     sudo apt-get -y install musl-tools
+    # - name: Install Tauri dependencies (aarch64-unknown-linux-musl only)
+    #   if: matrix.target == 'aarch64-unknown-linux-musl'
+    #   run: |
+    #     rustup default stable-aarch64-unknown-linux-musl
+    # - name: Install Tauri dependencies (x86_64-unknown-linux-musl musl only)
+    #   if: matrix.target == 'x86_64-unknown-linux-musl musl'
+    #   run: |
+    #     rustup default stable-x86_64-unknown-linux-musl
+    # Linux only ends here
     - name: Prepare Tauri
       run: |
         cargo install tauri-cli
