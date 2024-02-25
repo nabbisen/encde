@@ -215,7 +215,6 @@ fn onblur(
     })
 }
 
-#[cfg(web_sys_unstable_apis)]
 fn copy_to_clipboard(
     node_ref: &NodeRef,
     error_warn_messages: &UseStateHandle<String>,
@@ -224,19 +223,10 @@ fn copy_to_clipboard(
     Callback::from(move |_: MouseEvent| {
         let str = node_ref.cast::<HtmlInputElement>().expect("todo").value();
         web_sys::window()
-            .navigator()
-            .clipboard()
             .expect("todo")
-            .write_text(str);
-    })
-}
-#[cfg(not(web_sys_unstable_apis))]
-fn copy_to_clipboard(
-    _node_ref: &NodeRef,
-    error_warn_messages: &UseStateHandle<String>,
-) -> Callback<MouseEvent> {
-    let error_warn_messages = error_warn_messages.clone();
-    Callback::from(move |_: MouseEvent| {
-        error_warn_messages.set("クリップボードへのコピーに失敗しました".to_owned())
+            .navigator()
+            .clipboard() // requires: env RUSTFLAGS='--cfg=web_sys_unstable_apis'
+            .expect("todo")
+            .write_text(&str);
     })
 }
