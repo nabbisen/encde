@@ -19,7 +19,8 @@
       "targets": "all",
       "identifier": "encde",
       "icon": [
-        "icons/icon.png"
+        "icons/icon.png",
+        "icons/icon.ico"
       ]
     },
     "security": {
